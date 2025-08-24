@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#00fff0">
+  <title>NEON/TASKS v0.5</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="logo"><span class="logo-word">NEON/TASKS</span><span class="logo-ver">v0.5</span></div>
+    <div class="power">
+      <div class="power-meta"><span>Power</span><strong id="power-pct">0%</strong></div>
+      <div class="power-bar"><div id="power-fill" class="power-fill" aria-valuemin="0" aria-valuemax="100"></div></div>
+    </div>
+  </header>
+
+  <nav class="tabbar" role="tablist" aria-label="Primary">
+    <button class="tab is-active" data-tab="summary">Summary</button>
+    <button class="tab" data-tab="create">Create</button>
+    <button class="tab" data-tab="tasks">Tasks</button>
+    <button class="tab" data-tab="calendar">Calendar</button>
+    <button class="tab" data-tab="characters">Characters</button>
+    <button class="tab" data-tab="boss">Boss</button>
+    <button class="tab" data-tab="config">Config</button>
+  </nav>
+
+  <main class="main" id="main">
+    <!-- SUMMARY -->
+    <section id="summary" class="panel is-on">
+      <div id="summary-grid" class="summary-grid"></div>
+    </section>
+
+    <!-- CREATE -->
+    <section id="create" class="panel">
+      <form id="quick-form" class="form" novalidate>
+        <div class="field">
+          <label for="q-title">Title</label>
+          <input id="q-title" name="title" required placeholder="e.g., Gym session">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="q-due">Due date</label>
+            <input id="q-due" name="due" type="date">
+          </div>
+          <div class="field">
+            <label for="q-priority">Priority</label>
+            <select id="q-priority" name="priority">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="q-cat">Category</label>
+          <select id="q-cat" name="category">
+            <option>Fitness</option><option>Home</option><option>Finance</option>
+            <option>Work</option><option>Rose</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="q-notes">Notes</label>
+          <textarea id="q-notes" name="notes" rows="3" placeholder="Optional…"></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary">Create Task</button>
+          <button type="reset" class="btn ghost">Clear</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- TASKS -->
+    <section id="tasks" class="panel">
+      <div class="toolbar">
+        <input id="task-search" placeholder="Search tasks…">
+        <div class="scopes">
+          <button class="scope is-active" data-scope="today">Today</button>
+          <button class="scope" data-scope="week">Week</button>
+          <button class="scope" data-scope="all">All</button>
+        </div>
+        <div class="category-filters">
+          <button class="pill is-on" data-filter="all">All</button>
+          <button class="pill" data-filter="Fitness">Fitness</button>
+          <button class="pill" data-filter="Home">Home</button>
+          <button class="pill" data-filter="Finance">Finance</button>
+          <button class="pill" data-filter="Work">Work</button>
+          <button class="pill" data-filter="Rose">Rose</button>
+          <button class="pill" data-filter="Other">Other</button>
+        </div>
+        <div class="sort-wrap">
+          <button id="sort-btn" data-sort="priority">Sort: priority</button>
+          <div id="sort-menu" class="menu" hidden>
+            <div role="option" data-sort="priority">Priority</div>
+            <div role="option" data-sort="due">Due date</div>
+            <div role="option" data-sort="created">Created</div>
+          </div>
+        </div>
+      </div>
+      <div class="stats">
+        <div>Done: <strong id="stat-done">0</strong></div>
+        <div>Due Today: <strong id="stat-today">0</strong></div>
+        <div>Total: <strong id="stat-total">0</strong></div>
+      </div>
+      <div id="task-groups"></div>
+
+      <template id="tpl-task-group">
+        <section class="task-group card">
+          <div class="group-head">
+            <strong class="group-title"></strong>
+            <span class="muted group-count"></span>
+            <button class="collapse" aria-expanded="true">Toggle</button>
+          </div>
+          <div class="task-list"></div>
+        </section>
+      </template>
+
+      <template id="tpl-task-card">
+        <article class="task-card task">
+          <div class="priority-dot"></div>
+          <div class="task-body">
+            <div class="title"><span class="title-text"></span></div>
+            <div class="meta"><span class="pill cat"></span><span class="pill due"></span></div>
+            <div class="task-notes"></div>
+          </div>
+          <div class="actions">
+            <button class="btn" data-act="complete">Done</button>
+          </div>
+        </article>
+      </template>
+    </section>
+
+    <!-- CALENDAR -->
+    <section id="calendar" class="panel">
+      <div class="cal-head">
+        <button id="cal-prev" class="btn">Prev</button>
+        <div id="cal-title"></div>
+        <button id="cal-next" class="btn">Next</button>
+        <button id="cal-today" class="btn ghost">Today</button>
+        <button id="cal-generate" class="btn ghost">Generate recurring</button>
+      </div>
+      <div id="calendar-grid" class="calendar-grid"></div>
+
+      <template id="tpl-calendar-cell">
+        <div class="cal-cell">
+          <div class="cal-daynum"></div>
+          <div class="cal-chips"></div>
+        </div>
+      </template>
+
+      <template id="tpl-cal-chip">
+        <div class="cal-chip" data-priority="medium">
+          <span class="chip-title"></span>
+          <span class="chip-hours"></span>
+          <span class="chip-done" title="done">✓</span>
+        </div>
+      </template>
+    </section>
+
+    <!-- CHARACTERS -->
+    <section id="characters" class="panel">
+      <div id="chars-empty" class="empty">No characters yet. Complete tasks to unlock your first ally!</div>
+      <div id="chars" class="characters"></div>
+
+      <template id="tpl-character-card">
+        <article class="card char-card">
+          <div class="pic"><img class="char-img" alt=""></div>
+          <div class="body">
+            <div class="name"><span class="char-name"></span> <span class="muted">(<span class="char-rarity"></span>)</span></div>
+            <div class="meta"><span class="char-category"></span><span class="char-level">Level: <span class="val"></span></span><span class="char-bond">Bond: <span class="val"></span>%</span></div>
+            <div class="bars">
+              <div class="bar xp"><div class="fill"></div></div>
+              <div class="bar bond"><div class="fill"></div></div>
+            </div>
+            <div class="btn-row">
+              <button class="btn" data-act="chat">Chat</button>
+              <button class="btn" data-act="train">Train</button>
+              <button class="btn" data-act="gift">Gift</button>
+            </div>
+          </div>
+        </article>
+      </template>
+    </section>
+
+    <!-- BOSS -->
+    <section id="boss" class="panel">
+      <div class="card">
+        <div class="body">
+          <div>Cycle: <strong id="boss-cycle"></strong></div>
+          <div>Target Power: <strong id="boss-target"></strong></div>
+          <div class="bar party"><div id="party-power-fill" class="fill"></div></div>
+          <div>Party Power: <strong id="party-power-value">0%</strong> · Est. win chance: <strong id="boss-chance">0%</strong></div>
+          <div class="btn-row">
+            <button id="boss-simulate" class="btn primary">Simulate Fight</button>
+          </div>
+          <div id="boss-result-text" class="muted"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONFIG -->
+    <section id="config" class="panel">
+      <div class="card">
+        <div class="body">
+          <h3>XP Weights</h3>
+          <div class="config-weights btn-row">
+            <button class="btn" data-preset="default">Default</button>
+            <button class="btn" data-preset="aggressive">Aggressive</button>
+            <button class="btn" data-preset="gentle">Gentle</button>
+          </div>
+          <div id="weights-view" class="muted"></div>
+
+          <div class="field">
+            <label for="scaling-mode">Scaling</label>
+            <select id="scaling-mode">
+              <option value="linear">Linear</option>
+              <option value="sqrt">Square root</option>
+              <option value="log">Log</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="boss-target-input">Boss Target Power</label>
+              <input id="boss-target-input" type="number" min="10" step="10" value="600">
+            </div>
+            <div class="field" style="align-self:end">
+              <button id="boss-target-apply" class="btn">Apply</button>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button id="seed-demo" class="btn">Seed demo data</button>
+            <button id="reset-all" class="btn ghost">Reset all</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast-layer" class="toast-layer" aria-live="polite"></div>
+
+  <dialog id="confirm-reset">
+    <form method="dialog">
+      <p>Reset all data?</p>
+      <menu>
+        <button value="cancel">Cancel</button>
+        <button value="confirm">Reset</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="lightbox" aria-hidden="true">
+    <button id="lightbox-close" class="btn ghost" style="position:absolute;right:.5rem;top:.5rem">Close</button>
+    <img id="lightbox-img" alt="" style="display:none;max-width:90vw;max-height:70vh;border-radius:10px">
+    <div id="lightbox-content"></div>
+    <div id="lightbox-caption" class="muted" style="margin-top:.5rem"></div>
+  </dialog>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
