@@ -1,18 +1,28 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="neon">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#00fff0">
-  <title>NEON/TASKS v0.5</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#00fff0" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>NEON/TASKS v0.6</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <noscript>
+    <div class="noscript">NEON/TASKS requires JavaScript to run. Please enable it to continue.</div>
+  </noscript>
+
   <header class="app-header">
-    <div class="logo"><span class="logo-word">NEON/TASKS</span><span class="logo-ver">v0.5</span></div>
+    <div class="logo">
+      <span class="logo-word">NEON/TASKS</span>
+      <span class="logo-ver">v0.6</span>
+    </div>
     <div class="power">
-      <div class="power-meta"><span>Power</span><strong id="power-pct">0%</strong></div>
-      <div class="power-bar"><div id="power-fill" class="power-fill" aria-valuemin="0" aria-valuemax="100"></div></div>
+      <div class="power-meta"><span>Power</span><strong id="power-perc">0%</strong></div>
+      <div class="power-bar"><div id="powerbar-inner" class="power-fill"></div></div>
     </div>
   </header>
 
@@ -26,14 +36,14 @@
     <button class="tab" data-tab="config">Config</button>
   </nav>
 
-  <main class="main" id="main">
+  <main id="views" class="main" tabindex="-1">
     <!-- SUMMARY -->
-    <section id="summary" class="panel is-on">
-      <div id="summary-grid" class="summary-grid"></div>
+    <section id="view-summary" class="panel is-on">
+      <div id="summary-grid" class="summary-grid" aria-live="polite"></div>
     </section>
 
     <!-- CREATE -->
-    <section id="create" class="panel">
+    <section id="view-create" class="panel">
       <form id="quick-form" class="form" novalidate>
         <div class="field">
           <label for="q-title">Title</label>
@@ -47,15 +57,15 @@
           <div class="field">
             <label for="q-priority">Priority</label>
             <select id="q-priority" name="priority">
-              <option value="low">Low</option>
-              <option value="medium" selected>Medium</option>
-              <option value="high">High</option>
+              <option value="Low">Low</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="High">High</option>
             </select>
           </div>
         </div>
         <div class="field">
-          <label for="q-cat">Category</label>
-          <select id="q-cat" name="category">
+          <label for="q-category">Category</label>
+          <select id="q-category" name="category">
             <option>Fitness</option><option>Home</option><option>Finance</option>
             <option>Work</option><option>Rose</option><option>Other</option>
           </select>
@@ -72,7 +82,7 @@
     </section>
 
     <!-- TASKS -->
-    <section id="tasks" class="panel">
+    <section id="view-tasks" class="panel">
       <div class="toolbar">
         <input id="task-search" placeholder="Search tasks…">
         <div class="scopes">
@@ -80,17 +90,9 @@
           <button class="scope" data-scope="week">Week</button>
           <button class="scope" data-scope="all">All</button>
         </div>
-        <div class="category-filters">
-          <button class="pill is-on" data-filter="all">All</button>
-          <button class="pill" data-filter="Fitness">Fitness</button>
-          <button class="pill" data-filter="Home">Home</button>
-          <button class="pill" data-filter="Finance">Finance</button>
-          <button class="pill" data-filter="Work">Work</button>
-          <button class="pill" data-filter="Rose">Rose</button>
-          <button class="pill" data-filter="Other">Other</button>
-        </div>
+        <div id="task-categories" class="category-filters"></div>
         <div class="sort-wrap">
-          <button id="sort-btn" data-sort="priority">Sort: priority</button>
+          <button id="task-sort" data-sort="priority">Sort: priority</button>
           <div id="sort-menu" class="menu" hidden>
             <div role="option" data-sort="priority">Priority</div>
             <div role="option" data-sort="due">Due date</div>
@@ -104,6 +106,8 @@
         <div>Total: <strong id="stat-total">0</strong></div>
       </div>
       <div id="task-groups"></div>
+
+      <button id="fab-add" class="fab" aria-label="Add task">+</button>
 
       <template id="tpl-task-group">
         <section class="task-group card">
@@ -121,18 +125,20 @@
           <div class="priority-dot"></div>
           <div class="task-body">
             <div class="title"><span class="title-text"></span></div>
-            <div class="meta"><span class="pill cat"></span><span class="pill due"></span></div>
+            <div class="meta"><span class="pill cat"></span><span class="pill due"></span><span class="pill pri"></span></div>
             <div class="task-notes"></div>
           </div>
           <div class="actions">
-            <button class="btn" data-act="complete">Done</button>
+            <button class="btn btn-done" data-act="complete">Done</button>
+            <button class="btn btn-del" data-act="delete">Delete</button>
           </div>
+          <div class="hint"><span>← Delete</span><span>Done →</span></div>
         </article>
       </template>
     </section>
 
     <!-- CALENDAR -->
-    <section id="calendar" class="panel">
+    <section id="view-calendar" class="panel">
       <div class="cal-head">
         <button id="cal-prev" class="btn">Prev</button>
         <div id="cal-title"></div>
@@ -150,7 +156,7 @@
       </template>
 
       <template id="tpl-cal-chip">
-        <div class="cal-chip" data-priority="medium">
+        <div class="cal-chip" data-priority="Medium">
           <span class="chip-title"></span>
           <span class="chip-hours"></span>
           <span class="chip-done" title="done">✓</span>
@@ -159,9 +165,9 @@
     </section>
 
     <!-- CHARACTERS -->
-    <section id="characters" class="panel">
+    <section id="view-characters" class="panel">
       <div id="chars-empty" class="empty">No characters yet. Complete tasks to unlock your first ally!</div>
-      <div id="chars" class="characters"></div>
+      <div id="chars-grid" class="characters"></div>
 
       <template id="tpl-character-card">
         <article class="card char-card">
@@ -184,39 +190,41 @@
     </section>
 
     <!-- BOSS -->
-    <section id="boss" class="panel">
+    <section id="view-boss" class="panel">
       <div class="card">
         <div class="body">
           <div>Cycle: <strong id="boss-cycle"></strong></div>
           <div>Target Power: <strong id="boss-target"></strong></div>
-          <div class="bar party"><div id="party-power-fill" class="fill"></div></div>
-          <div>Party Power: <strong id="party-power-value">0%</strong> · Est. win chance: <strong id="boss-chance">0%</strong></div>
+          <div class="bar party"><div id="party-inner" class="fill"></div></div>
+          <div>Party Power: <strong id="party-perc">0%</strong> · Est. win chance: <strong id="boss-chance">0%</strong></div>
           <div class="btn-row">
-            <button id="boss-simulate" class="btn primary">Simulate Fight</button>
+            <button id="btn-simulate" class="btn primary">Simulate Fight</button>
           </div>
-          <div id="boss-result-text" class="muted"></div>
+          <div id="boss-result" class="muted"></div>
+          <h4>Recent activity</h4>
+          <div id="activity-list" class="muted"></div>
         </div>
       </div>
     </section>
 
     <!-- CONFIG -->
-    <section id="config" class="panel">
+    <section id="view-config" class="panel">
       <div class="card">
         <div class="body">
           <h3>XP Weights</h3>
           <div class="config-weights btn-row">
-            <button class="btn" data-preset="default">Default</button>
-            <button class="btn" data-preset="aggressive">Aggressive</button>
-            <button class="btn" data-preset="gentle">Gentle</button>
+            <button class="btn" data-preset="Default">Default</button>
+            <button class="btn" data-preset="Aggressive">Aggressive</button>
+            <button class="btn" data-preset="Gentle">Gentle</button>
           </div>
           <div id="weights-view" class="muted"></div>
 
           <div class="field">
-            <label for="scaling-mode">Scaling</label>
-            <select id="scaling-mode">
-              <option value="linear">Linear</option>
-              <option value="sqrt">Square root</option>
-              <option value="log">Log</option>
+            <label for="xp-scale">Scaling</label>
+            <select id="xp-scale">
+              <option value="Linear">Linear</option>
+              <option value="Square root">Square root</option>
+              <option value="Log">Log</option>
             </select>
           </div>
 
@@ -226,7 +234,7 @@
               <input id="boss-target-input" type="number" min="10" step="10" value="600">
             </div>
             <div class="field" style="align-self:end">
-              <button id="boss-target-apply" class="btn">Apply</button>
+              <button id="apply-target" class="btn">Apply</button>
             </div>
           </div>
 
@@ -245,8 +253,8 @@
     <form method="dialog">
       <p>Reset all data?</p>
       <menu>
-        <button value="cancel">Cancel</button>
-        <button value="confirm">Reset</button>
+        <button id="reset-cancel-btn" value="cancel">Cancel</button>
+        <button id="reset-confirm-btn" value="confirm">Reset</button>
       </menu>
     </form>
   </dialog>
